@@ -1,0 +1,38 @@
+pipeline:
+  name: datadog-terraform-pipeline
+  identifier: datadog_terraform_pipeline
+  projectIdentifier: datadogmonitoring
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: Terraform Apply
+        identifier: terraform_apply
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: ShellScript
+                  name: Run Terraform
+                  identifier: run_terraform
+                  spec:
+                    shell: Bash
+                    onDelegate: true
+                    environmentVariables:
+                      - name: DATADOG_API_KEY
+                        type: Secret
+                        value: <+secrets.getValue("DD_API_KEY")>
+                      - name: DATADOG_APP_KEY
+                        type: Secret
+                        value: <+secrets.getValue("DD_APP_KEY")>
+                    script: |
+                      echo "Initializing Terraform..."
+                      terraform init
+
+                      echo "Planning Terraform changes..."
+                      terraform plan
+
+                      echo "Applying Terraform changes..."
+                      terraform apply -auto-approve
+                    workingDirectory: /harness/terraform-datadog/
